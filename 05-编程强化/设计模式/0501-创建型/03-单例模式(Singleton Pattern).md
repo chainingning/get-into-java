@@ -72,7 +72,10 @@ public class Singleton{
   static{
     instance= new Singleton();
   }
+    //让构造函数为 private，这样该类就不会被实例化
     private Singleton(){}
+    
+    //获取唯一可用的对象
     pulic static Singleton getInstance(){
         return instance;
     }
