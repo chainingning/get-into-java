@@ -45,7 +45,13 @@
 
 在单例类首次加载时就创建实例
 
-实例 1:
+步骤：
+
+1. 构造器私有化(防止new)
+2. 类的内部创建对象
+3. 向外暴露一个静态的公共方法，返回实例对象
+
+### 1.静态常量式:
 
 ```java
 public class Singleton{
@@ -63,11 +69,19 @@ public class Singleton{
 }
 ```
 
-实例 2:
+#### 优缺点
+
+优点：写法简单，其目的是在类装载的时候就完成实例化，避免了线程同步问题
+
+缺点：在类装载的时候就完成实例化，没有达到Lazy Loading的效果，如果从开始至终从未使用过这个实例，就会造成内存的浪费。
+
+详解：这种方式基于classoder机制避免了多线程的同步问题，不过，instance在类装载时候就实例化，在单例模式中大多数都是调用getInstance方法，但是导致类装载的原因有很多种，因此不能确定有其他的方式(或者其他的静态方法)导致类装载买这时候初始化instance就没有达到lazy loading效果
+
+### 2.静态代码块式:
 
 ```java
 public class Singleton{
-    private static final Singleton instance;
+    private static  Singleton instance;
   
   static{
     instance= new Singleton();
@@ -81,6 +95,8 @@ public class Singleton{
     }
 }
 ```
+
+
 
 为什么使用 final 修饰符:确保不能通过反射攻击破坏单例性
 
@@ -98,7 +114,7 @@ public class Singleton{
  *
  */
 public class LazyInitThreadNotSafeSingleton {
-    private static Singleton INSTANCE = null;
+    private static Singleton INSTANCE;
 
     private LazyInitThreadNotSafeSingleton() {
         //防止反射攻击
@@ -129,7 +145,9 @@ public class LazyInitThreadNotSafeSingleton {
 
 这种方式是最基本的实现方式，这种实现最大的问题就是不支持多线程。因为没有加锁 synchronized，所以严格意义上它并不算单例模式。 这种方式 lazy loading 很明显，不要求线程安全，在多线程不能正常工作。 
 
-### 2.线程安全的懒汉
+实际开发中不要使用这种方式。
+
+### 2.线程安全的懒汉(同步)
 
 ```java
 /**
@@ -171,10 +189,10 @@ public class LazyInitThreadSafeSyncSingleton {
  这种方式具备很好的 lazy loading，能够在多线程中很好的工作，但是，效率很低，99% 情况下不需要同步。 
 
 - 优点：第一次调用才初始化，避免内存浪费。 
+- 缺点：必须加锁 synchronized 才能保证单例，但加锁会影响效率。 getInstance() 的性能对应用程序不是很关键（该方法使用不太频繁）
+- 实际开发中，不推荐使用这种方式 
 
-- 缺点：必须加锁 synchronized 才能保证单例，但加锁会影响效率。 getInstance() 的性能对应用程序不是很关键（该方法使用不太频繁） 
-
-## 双检锁/双重校验锁
+## 双检锁/双重校验锁（DoubleCheck）
 
 ```java
 /**
@@ -221,6 +239,8 @@ public class LazyInitThreadSafeSingleton {
 ```
 
 **描述**：这种方式采用双锁机制，安全且在多线程情况下能保持高性能。 getInstance() 的性能对应用程序很关键。 
+
+开发中推荐该方式。 
 
 ### 登记式/内部类
 
